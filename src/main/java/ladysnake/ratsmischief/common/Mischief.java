@@ -1,6 +1,7 @@
 package ladysnake.ratsmischief.common;
 
 import ladysnake.ratsmischief.common.armormaterials.RatMaskArmorMaterial;
+import ladysnake.ratsmischief.common.block.RatNestBlock;
 import ladysnake.ratsmischief.common.command.PlayerRatifyCommand;
 import ladysnake.ratsmischief.common.command.PlayerUnratifyCommand;
 import ladysnake.ratsmischief.common.entity.RatEntity;
@@ -11,15 +12,17 @@ import ladysnake.ratsmischief.common.world.RatSpawner;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v1.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.object.builder.v1.block.FabricBlockSettings;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.fabricmc.fabric.api.object.builder.v1.trade.TradeOfferHelper;
+import net.minecraft.block.Block;
+import net.minecraft.block.Blocks;
+import net.minecraft.block.Material;
 import net.minecraft.entity.*;
 import net.minecraft.entity.decoration.painting.PaintingMotive;
-import net.minecraft.item.ArmorItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemGroup;
-import net.minecraft.item.SpawnEggItem;
+import net.minecraft.item.*;
+import net.minecraft.sound.BlockSoundGroup;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.world.Difficulty;
@@ -47,6 +50,8 @@ public class Mischief implements ModInitializer {
     public static Item RAT_MASK;
     public static Item ELYTRAT;
 
+    public static Block RAT_NEST;
+
     private static <T extends Entity> EntityType<T> registerEntity(String s, EntityType<T> entityType) {
         return Registry.register(Registry.ENTITY_TYPE, MODID + ":" + s, entityType);
     }
@@ -54,6 +59,18 @@ public class Mischief implements ModInitializer {
     public static Item registerItem(Item item, String name) {
         Registry.register(Registry.ITEM, MODID + ":" + name, item);
         return item;
+    }
+
+    private static Block registerBlock(Block block, String name, ItemGroup itemGroup) {
+        Registry.register(Registry.BLOCK, MODID + ":" + name, block);
+
+        if (itemGroup != null) {
+            BlockItem item = new BlockItem(block, new Item.Settings().group(itemGroup));
+            item.appendBlocks(Item.BLOCK_ITEMS, item);
+            registerItem(item, name);
+        }
+
+        return block;
     }
 
     @Override
@@ -82,7 +99,6 @@ public class Mischief implements ModInitializer {
         });
 
         RAT_SPAWN_EGG = registerItem(new SpawnEggItem(RAT, 0x1A1A1A, 0xF2ADA1, (new Item.Settings()).group(ItemGroup.MISC)), "rat_spawn_egg");
-//        LOYALTY_OF_THE_MISCHIEF = registerItem(new Item((new Item.Settings()).group(ItemGroup.MATERIALS).rarity(Rarity.UNCOMMON)), "loyalty_of_the_mischief");
 
         LEATHER_RAT_POUCH = registerItem(new RatPouchItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), 5), "leather_rat_pouch");
         TWISTED_RAT_POUCH = registerItem(new RatPouchItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), 10), "twisted_rat_pouch");
@@ -90,11 +106,12 @@ public class Mischief implements ModInitializer {
 
         HARVEST_STAFF = registerItem(new RatStaffItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), RatStaffItem.Action.HARVEST), "harvest_staff");
         COLLECTION_STAFF = registerItem(new RatStaffItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), RatStaffItem.Action.COLLECT), "collection_staff");
-//        SKIRMISH_STAFF = registerItem(new RatStaffItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), RatStaffItem.Action.SKIRMISH), "skirmish_staff");
         LOVE_STAFF = registerItem(new RatStaffItem((new Item.Settings()).group(ItemGroup.TOOLS).maxCount(1), RatStaffItem.Action.LOVE), "love_staff");
 
         RAT_MASK = registerItem(new ArmorItem(RatMaskArmorMaterial.RAT_MASK, EquipmentSlot.HEAD, (new Item.Settings()).group(ItemGroup.COMBAT)), "rat_mask");
         ELYTRAT = registerItem(new Item(new Item.Settings().group(ItemGroup.MISC).maxCount(16)), "elytrat");
+
+        RAT_NEST = registerBlock(new RatNestBlock(FabricBlockSettings.of(Material.WOOD).strength(2.5F).sounds(BlockSoundGroup.WOOD).suffocates((state, world, pos) -> false)), "rat_nest", ItemGroup.DECORATIONS);
 
         // rat kid painting
         Registry.register(Registry.PAINTING_MOTIVE, new Identifier(MODID, "a_rat_in_time"), new PaintingMotive(64, 48));
